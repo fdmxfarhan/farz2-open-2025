@@ -1,0 +1,81 @@
+void Motor_SetID(uint8_t PreviousID, uint8_t NewID) {
+  MOTOR_TX_Buffer[0] = 0xAA;
+  MOTOR_TX_Buffer[1] = 0xAA;
+  MOTOR_TX_Buffer[2] = 0;
+  MOTOR_TX_Buffer[3] = PreviousID;
+  MOTOR_TX_Buffer[4] = 0x11;   //Command
+  MOTOR_TX_Buffer[5] = NewID;  //Data
+
+  MOTOR_TX_Buffer[6] = Checksum(&MOTOR_TX_Buffer[2], 4);
+
+  MOTOR_SendData(7);
+}
+void MOTOR_SendData(int length) {
+  for (int q = 0; q < length; q++) {
+    mySerial.write(MOTOR_TX_Buffer[q]);
+    // Serial.write(MOTOR_TX_Buffer[q]);
+  }
+  MOTOR_TxModeF = 1;
+}
+uint8_t Checksum(char *Buf, uint16_t Length) {
+  uint8_t CheckByte = 0;
+
+  for (uint16_t i = 0; i < Length; i++) {
+    CheckByte ^= *(Buf++);
+  }
+  return CheckByte;
+}
+void MotorMove(uint8_t NumOfMotor) {
+  MOTOR_TX_Buffer[0] = 0xAA;
+  MOTOR_TX_Buffer[1] = 0xAA;
+  MOTOR_TX_Buffer[2] = NumOfMotor;
+
+  uint16_t StartDataAdd = NumOfMotor + 3;
+
+  for (uint8_t i = 0; i < NumOfMotor; i++) {
+    int16_t Speed = GTD35[i].RefRPM;
+    uint8_t Speed_MSB = (Speed >> 8) & 0xFF;
+    uint8_t Speed_LSB = Speed & 0xFF;
+
+    uint16_t ball_angle = GTD35[i].Refball_angle * 10;
+    uint8_t ball_angle_MSB = (ball_angle >> 8) & 0xFF;
+    uint8_t ball_angle_LSB = ball_angle & 0xFF;
+
+    uint8_t ControlByte = 0;
+    if (GTD35[i].Enable) ControlByte |= 0x0F;
+    if (GTD35[i].ResetEncoder) ControlByte |= 0xF0;
+
+    MOTOR_TX_Buffer[i + 3] = i;
+    MOTOR_TX_Buffer[StartDataAdd] = ControlByte;
+    MOTOR_TX_Buffer[StartDataAdd + 1] = Speed_MSB;
+    MOTOR_TX_Buffer[StartDataAdd + 2] = Speed_LSB;
+    MOTOR_TX_Buffer[StartDataAdd + 3] = ball_angle_MSB;
+    MOTOR_TX_Buffer[StartDataAdd + 4] = ball_angle_LSB;
+
+    StartDataAdd += 5;
+  }
+
+  MOTOR_TX_Buffer[StartDataAdd] = Checksum(&MOTOR_TX_Buffer[2], StartDataAdd - 2);
+
+  MOTOR_SendData(StartDataAdd + 1);
+}
+void motor(int zero, int one, int two, int three) {
+  GTD35[0].Enable = 1;
+  GTD35[1].Enable = 1;
+  GTD35[2].Enable = 1;
+  GTD35[3].Enable = 1;
+  GTD35[0].RefRPM = zero;
+  GTD35[0].Refball_angle = 400;
+  GTD35[1].RefRPM = one;
+  GTD35[1].Refball_angle = 400;
+  GTD35[2].RefRPM = two;
+  GTD35[2].Refball_angle = 400;
+  GTD35[3].RefRPM = three;
+  GTD35[3].Refball_angle = 400;
+  MotorMove(4);
+}
+void moveAngle(int Ang) {
+  int vx = V * sin(Ang * PI / 180);
+  int vy = V * cos(Ang * PI / 180);
+  motor((vy - vx) / 2 + zavie_robot, (vy + vx) / 2 + zavie_robot, (-vy + vx) / 2 + zavie_robot, (-vy - vx) / 2 + zavie_robot);
+}
