@@ -1,3 +1,4 @@
+#define TDAXS12_ADDRESS 0x10
 uint8_t RxData[31];
 uint8_t RegisterAdd = 4;
 

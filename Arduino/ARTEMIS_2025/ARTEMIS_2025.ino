@@ -3,7 +3,6 @@
 #include <Pixy2.h>
 #include <Adafruit_SH1106_STM32.h>
 
-#define TDAXS12_ADDRESS 0x10
 #define rxPin1 PA2
 #define txPin1 PA3
 #define rxPin2 PA10
@@ -15,16 +14,21 @@
 #define LED2_OFF digitalWrite(PB10, 0);
 #define Buzzer_ON digitalWrite(PB9, 1);
 #define Buzzer_OFF digitalWrite(PB9, 0);
- 
+
+#define robot1_x 152
+#define robot1_y 115
+#define robot2_x 152
+#define robot2_y 115
+
 Adafruit_SH1106 display(-1);
 SoftwareSerial mySerial(rxPin1, txPin1);
 SoftwareSerial usbSerial(rxPin2, txPin2);
 Pixy2 pixy;
 
-int zavie_robot = 0;
+int V = 400;
+int zavie_robot = 0, robot_id;
 int xb, yb, ball_ang;
 int xr = 152, yr = 115;
-int V = 400;
 bool is_ball = false;
 int adc[16], bat_alarm_time = 0;
 float Vbat = 0;
@@ -54,6 +58,17 @@ void setup() {
   pinMode(txPin1, OUTPUT);  //tx motor
   pinMode(rxPin2, INPUT);   //rx USB
   pinMode(txPin2, OUTPUT);  //tx USB
+  pinMode(PB5, INPUT);   //Robot ID
+
+  if(digitalRead(PB5)){
+    robot_id = 1;
+    xr = robot1_x;
+    yr = robot1_y;
+  }else{
+    robot_id = 2;
+    xr = robot2_x;
+    yr = robot2_y;
+  }
 
   analogWrite(PB15, 10);
   // HardwareTimer *MyTim = new HardwareTimer(TIM1);
@@ -66,7 +81,10 @@ void setup() {
 
   display.begin(0x2, 0x3C);
   display.setTextColor(WHITE);
-  display.setTextSize(1);
+  display.setTextSize(6);
+  display.clearDisplay();
+  display.setCursor(45, 10);
+  display.print(robot_id);
   display.display();
   for (int i = 0; i < 2; i++) {
     LED1_ON;
@@ -84,6 +102,7 @@ void setup() {
   Wire.setSDA(PB7);
   Wire.setSCL(PB6);
   display.clearDisplay();
+  display.setTextSize(1);
   display.display();
   pixy.init();
 }
