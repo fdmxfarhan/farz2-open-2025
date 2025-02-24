@@ -1,3 +1,5 @@
+uint16_t blocks;
+
 void read_pixy() {
   int i;
   blocks = pixy.ccc.getBlocks();
@@ -16,6 +18,8 @@ void read_pixy() {
   }
 }
 void read_ldr() {
+  digitalWrite(PB12, digitalRead(PA15));
+  digitalWrite(PB8, digitalRead(PA15));
   for (int i = 0; i < 16; i++) {
     digitalWrite(PA0, (i / 1) % 2);
     digitalWrite(PC15, (i / 2) % 2);

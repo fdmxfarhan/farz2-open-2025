@@ -1,3 +1,31 @@
+#define TX_BUFFER_SIZE 100
+#define RX_BUFFER_SIZE 500
+
+char MOTOR_TX_Buffer[TX_BUFFER_SIZE];
+volatile uint8_t MOTOR_RX_Buffer[RX_BUFFER_SIZE];
+bool MOTOR_TxModeF = 0, MOTOR_ReceivingF = 0, MOTOR_NewPacketF = 0, MOTOR_SendDataToMasterF = 0;
+
+struct Motor {
+  uint16_t Refball_angle;
+  int16_t RefRPM;
+  bool Enable;
+  bool ResetEncoder;
+  uint8_t TorquePercent, Feedback_TorquePercent;
+  uint8_t Baudrate, Feedback_Baudrate;
+  int16_t RealRPM;
+  int32_t IncrementalEncoder;
+  float AbsoluteEncoder;
+  float Current;
+  float Voltage;
+} GTD35[20];
+
+void init_motors(){
+  for (int i = 0; i < 4; i++) {
+    GTD35[i].Enable = 1;
+    GTD35[i].Refball_angle = 400;
+  }
+}
+
 void Motor_SetID(uint8_t PreviousID, uint8_t NewID) {
   MOTOR_TX_Buffer[0] = 0xAA;
   MOTOR_TX_Buffer[1] = 0xAA;
