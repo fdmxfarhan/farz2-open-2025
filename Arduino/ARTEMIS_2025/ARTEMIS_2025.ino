@@ -1,7 +1,8 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
-#include <Pixy2.h>
+// #include <Pixy2.h>
 #include <Adafruit_SH1106_STM32.h>
+#include <Pixy2I2C.h>
 
 #define rxPin1 PA2
 #define txPin1 PA3
@@ -23,15 +24,19 @@
 Adafruit_SH1106 display(-1);
 SoftwareSerial mySerial(rxPin1, txPin1);
 SoftwareSerial usbSerial(rxPin2, txPin2);
-Pixy2 pixy;
+// Pixy2 pixy;
+Pixy2I2C pixy;
+
 
 int V = 400;
 int zavie_robot = 0, robot_id;
-int xb, yb, ball_ang;
+int xb, yb, ball_ang, ball_dist;
 int xr = 152, yr = 115;
-bool is_ball = false;
 int adc[16], bat_alarm_time = 0;
+int shoot_cnt = 0, pixy_timeout_cnt = 0;
 float Vbat = 0;
+bool already_shooted = false;
+bool is_ball = false, ball_in_kicker = false;
 bool ldr_front = false, ldr_back = false, ldr_right = false, ldr_left = false;
 
 
@@ -58,13 +63,13 @@ void setup() {
   pinMode(txPin1, OUTPUT);  //tx motor
   pinMode(rxPin2, INPUT);   //rx USB
   pinMode(txPin2, OUTPUT);  //tx USB
-  pinMode(PB5, INPUT);   //Robot ID
+  pinMode(PB5, INPUT);      //Robot ID
 
-  if(digitalRead(PB5)){
+  if (digitalRead(PB5)) {
     robot_id = 1;
     xr = robot1_x;
     yr = robot1_y;
-  }else{
+  } else {
     robot_id = 2;
     xr = robot2_x;
     yr = robot2_y;
@@ -83,7 +88,7 @@ void setup() {
   display.setTextColor(WHITE);
   display.setTextSize(6);
   display.clearDisplay();
-  display.setCursor(45, 10);
+  display.setCursor(50, 10);
   display.print(robot_id);
   display.display();
   for (int i = 0; i < 2; i++) {
@@ -111,5 +116,6 @@ void loop() {
   read_pixy();
   read_ldr();
   print_all();
+  // print_adc();
   Forward();
 }

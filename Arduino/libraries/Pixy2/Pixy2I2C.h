@@ -32,6 +32,8 @@ public:
       m_addr = PIXY_I2C_DEFAULT_ADDR;
     else
       m_addr = arg;
+    Wire.setSDA(PB7);
+    Wire.setSCL(PB6);
     Wire.begin();
 	return 0;
   }

@@ -4,7 +4,6 @@ void read_pixy() {
   int i;
   blocks = pixy.ccc.getBlocks();
 
-  is_ball = false;
   if (blocks) {
     for (i = 0; i < pixy.ccc.numBlocks; i++) {
       if (pixy.ccc.blocks[i].m_signature == 1) {
@@ -12,9 +11,13 @@ void read_pixy() {
         xb = pixy.ccc.blocks[i].m_x;
         yb = pixy.ccc.blocks[i].m_y;
         ball_ang = atan2(xb - xr, yb - yr) * 180 / PI;
+        ball_dist = sqrt(pow(xb - xr, 2) + pow(yb - yr, 2));
         if (ball_ang < 0) ball_ang += 360;
       }
     }
+    pixy_timeout_cnt = 0;
+  } else {
+    is_ball = false;
   }
 }
 void read_ldr() {
@@ -27,13 +30,13 @@ void read_ldr() {
     digitalWrite(PC13, (i / 8) % 2);
     adc[i] = analogRead(PB0);
   }
-  if(adc[0] > 900 || adc[1] > 900) ldr_left = true;
+  if (adc[0] > 900 || adc[1] > 900) ldr_left = true;
   else ldr_left = false;
-  if(adc[1] > 900 || adc[2] > 900) ldr_front = true;
+  if (adc[1] > 900 || adc[2] > 900) ldr_front = true;
   else ldr_front = false;
-  if(adc[3] > 900 || adc[4] > 900) ldr_back = true;
+  if (adc[3] > 900 || adc[4] > 900) ldr_back = true;
   else ldr_back = false;
-  if(adc[5] > 900 || adc[6] > 900) ldr_right = true;
+  if (adc[5] > 900 || adc[6] > 900) ldr_right = true;
   else ldr_right = false;
 
   /////// Battery Voltage Alarm
@@ -45,4 +48,11 @@ void read_ldr() {
       digitalWrite(PB9, 0);
     } else bat_alarm_time = millis();
   } else digitalWrite(PB9, 0);
+
+  //////
+  if (adc[11] < 500) ball_in_kicker = true;
+  else {
+    ball_in_kicker = false;
+    already_shooted = false;
+  }
 }
