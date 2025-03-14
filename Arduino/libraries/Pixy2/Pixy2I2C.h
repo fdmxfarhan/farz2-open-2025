@@ -34,7 +34,11 @@ public:
       m_addr = arg;
     Wire.setSDA(PB7);
     Wire.setSCL(PB6);
+  Wire.setClock(400000);
+
     Wire.begin();
+  Wire.setClock(400000);
+
 	return 0;
   }
 	
