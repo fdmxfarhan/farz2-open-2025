@@ -5,6 +5,7 @@
 #include <Pixy2I2C.h>
 #define openMV_Address 0x42
 
+#define Look_at_goal false
 
 #define rxPin1 PA2
 #define txPin1 PA3
@@ -40,7 +41,7 @@ float Vbat = 0;
 bool already_shooted = false;
 bool is_ball = false, ball_in_kicker = false;
 bool ldr_front = false, ldr_back = false, ldr_right = false, ldr_left = false;
-
+int distance_r, distance_b, distance_l, diff;
 
 // #define PWM_FREQUENCY 500000  // 10 kHz (adjust as needed)
 // #define PWM_RESOLUTION 1000  // 1000 steps for duty cycle control
@@ -53,6 +54,7 @@ int direction_ball, yellow_angle, direction_yellow;
 int distance_yellow;
 int blue_angle, direction_blue, distance_blue;
 bool is_yellow = false, is_blue = false;
+int target;
 
 int last_time = millis();
 void setup() {
@@ -128,7 +130,7 @@ void setup() {
 void loop() {
   TDread_noSkip();
   read_cam(true);
-  read_ldr();
+  read_sensors();
   if (digitalRead(PA11)) print_adc();
   else print_all();
   
